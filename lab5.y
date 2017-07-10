@@ -251,6 +251,7 @@ struct infovariavel {
 	infolistexpr infolexpr;
 	infoexpressao infoexpr;
 	infovariavel infovar;
+	quadrupla quad;
 }
 /* Declaracao dos atributos dos tokens e dos nao-terminais */
 
@@ -512,15 +513,37 @@ Statement   :	CompStat {$$.tipo = $1.tipo;}
 IfStat			: IF OPPAR {printf("if (");} 
 							Expression CLPAR {printf(")\n");} {
 								if ($4.tipo != LOGICO)
-                  Incompatibilidade ("Expressao nao logica/relacional dentro de if");
+                  					Incompatibilidade ("Expressao nao logica/relacional dentro de if");
+                 				opndaux.tipo = ROTOPND;
+		         				$<quad>$ = 
+									GeraQuadrupla (OPJF, $4.opnd, opndidle, opndaux);
 							}
-							{tab++;} Statement {tab--;}
-							ElseStat
+							{tab++;} Statement {tab--; 
+								$<quad>$ = quadcorrente;
+								$<quad>7->result.atr.rotulo =
+	                       			 GeraQuadrupla (NOP, opndidle, opndidle, opndidle);
+							}
+							ElseStat {
+					           	if ($<quad>10->prox != quadcorrente) {
+					                  	quadaux = $<quad>10->prox;
+					                        	$<quad>10->prox = quadaux->prox;
+					                        	quadaux->prox = $<quad>10->prox->prox;
+					                        	$<quad>10->prox->prox = quadaux;
+					                        	RenumQuadruplas ($<quad>10, quadcorrente);
+					         	}
+					 		}
+
 						;
 
 ElseStat 		: 	
-						| 	ELSE {tabular (); printf("else\n");} 
-							{tab++;} Statement {tab--;}
+						| 	ELSE {tabular (); printf("else\n");
+									 opndaux.tipo = ROTOPND;
+									$<quad>$ = GeraQuadrupla (OPJUMP, opndidle, opndidle, opndaux);
+								} 
+							{tab++;} Statement {tab--;
+									$<quad>2->result.atr.rotulo =
+								GeraQuadrupla (NOP, opndidle, opndidle, opndidle);	
+							}
 
 						;
 
