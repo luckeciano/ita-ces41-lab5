@@ -547,12 +547,19 @@ ElseStat 		:
 
 						;
 
-WhileStat 	: 	WHILE OPPAR {printf("while ( ");}
+WhileStat 	: 	WHILE OPPAR {printf("while ( "); $<quad>$ = GeraQuadrupla (NOP, opndidle, opndidle, opndidle);}
 								Expression CLPAR {printf(" )\n");} {
 									if ($4.tipo != LOGICO)
-		                Incompatibilidade ("Expressao nao logica/relacional dentro de while");
+		                				Incompatibilidade ("Expressao nao logica/relacional dentro de while");
+		                			opndaux.tipo = ROTOPND;
+                        			$<quad>$ = GeraQuadrupla (OPJF, $4.opnd, opndidle, opndaux);
 								}
-								{tab++;} Statement {tab--;}
+								{tab++;} Statement {tab--;
+									opndaux.tipo = ROTOPND;
+			                        opndaux.atr.rotulo = $<quad>3;
+			                        GeraQuadrupla (OPJUMP, opndidle, opndidle, opndaux);
+			                        $<quad>7->result.atr.rotulo = GeraQuadrupla (NOP, opndidle, opndidle, opndidle);
+								}
 						;
 
 RepeatStat 	: 	REPEAT {printf("repeat ");}
