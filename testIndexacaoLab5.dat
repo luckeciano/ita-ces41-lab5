@@ -1,0 +1,10 @@
+program teste;
+var
+	int i, j, k, A[10][10]; 
+{
+	i = 7; j = 5;
+	k = A[i-3][j+2] + 5;
+	A[10-i][9-j] = i + j * k;
+	read (i, j, A[2][3], k);
+	read (A[1][2]);
+}

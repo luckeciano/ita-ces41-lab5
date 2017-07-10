@@ -255,14 +255,12 @@ struct infovariavel {
 }
 /* Declaracao dos atributos dos tokens e dos nao-terminais */
 
-%type	    <infovar>	        Variable Header FuncHeader  ProcHeader
+%type	    <infovar>	        Variable Header FuncHeader  ProcHeader FuncCall
 %type 	  <infoexpr> 	    Expression  AuxExpr1  AuxExpr2 CompStat StatList Statement ReturnStat
                             AuxExpr3   AuxExpr4   Term   Factor WriteElem
 %type 		<nargs> 	ReadList WriteList                            
 %type     <nsubscr>   SubscrList
 %type 		<infolexpr>	ExprList Arguments
-%type  		<simb>  		FuncCall
-
 
 %token		DOLAR
 
@@ -472,21 +470,23 @@ Parameter 	:	Type ID {printf(" %s",$2);
 
 
 CompStat    :	OPBRACE {
-								tab--;
-								tabular (); 
-								printf ("\{\n"); 
-								tab++;	
-								tab++;
-							}
-							StatList 
-							CLBRACE {
-								tab--;
-								tab--; 
-								tabular ();
-								 printf ("}\n");
-								 tab++;
-								 $$.tipo = $3.tipo;
-							}
+							tab--;
+							tabular (); 
+							printf ("\{\n"); 
+							tab++;	
+							tab++;
+						}
+						StatList 
+						CLBRACE {
+							if (quadcorrente->oper != RETURNOP)
+	    						GeraQuadrupla (RETURNOP, opndidle, opndidle, opndidle);
+							tab--;
+							tab--; 
+							tabular ();
+							 printf ("}\n");
+							 tab++;
+							 $$.tipo = $3.tipo;
+						}
 						;
 
 StatList		:	
@@ -696,10 +696,12 @@ CallStat 		: 	CALL ID OPPAR CLPAR SCOLON
 						;
 
 ReturnStat 	: 	RETURN SCOLON {printf ("return ;\n");
-								$$.tipo = NAOVAR;
+								$$.tipo = NAOVAR
+								GeraQuadrupla (RETURNOP, opndidle, opndidle, opndidle);
 						}
 						| 	RETURN {printf ("return ");} Expression SCOLON {printf (";\n");
 								$$.tipo = $3.tipo;
+								GeraQuadrupla (RETURNOP, $2.opnd, opndidle, opndidle);
 						}
 						;
 
@@ -717,11 +719,14 @@ AssignStat 	:	Variable  {if  ($1.simb != NULL) $1.simb->inic = $1.simb->ref = VE
                 }
 						;
 
-ExprList 		: 	Expression {$$.nargs = 1;   $$.listtipo = InicListTipo ($1.tipo);}
+ExprList 		: 	Expression {$$.nargs = 1;   $$.listtipo = InicListTipo ($1.tipo);
+							GeraQuadrupla (PARAM, $1.opnd, opndidle, opndidle);
+						}
 						| 	ExprList COMMA {printf(", ");} Expression {
 							$$.nargs = $1.nargs + 1;
 							$$.listtipo = 
 								ConcatListTipo ($1.listtipo, InicListTipo ($4.tipo));
+							GeraQuadrupla (PARAM, $4.opnd, opndidle, opndidle);
 
 						}
 						;
@@ -934,15 +939,22 @@ FuncCall 	: 	ID {printf ("%s",$1);}  OPPAR {printf ("(");
 						TipoInadequado ($1);
 					$<simb>$ = simb;	
 			} Arguments CLPAR {printf (")");
-				$$ = $<simb>4;
-				if ($$ && $$->tid == IDFUNC) {
-					if ($$->nparam != $5.nargs)
+				$$.simb = $<simb>4;
+				if ($$.simb && $$.simb->tid == IDFUNC) {
+					if ($$.simb->nparam != $5.nargs)
 						Incompatibilidade 
 				("Numero de argumentos diferente do  numero de parametros");
-					if ($5.listtipo && $$->listparam) {;
-						ChecArgumentos  ($5.listtipo, $$->listparam); 
+					if ($5.listtipo && $$.simb->listparam) {;
+						ChecArgumentos  ($5.listtipo, $$.simb->listparam); 
 					}
 				}
+				opnd1.tipo = FUNCOPND;  opnd1.atr.func = $$.simb->fhead;
+				opnd2.tipo = INTOPND; opnd2.atr.valint = $4.nargs;
+				if ($$.simb->tvar == NAOVAR) result = opndidle;
+				else { result.tipo = VAROPND;
+					result.atr.simb = NovaTemp ($$.simb->tvar); } 	
+				GeraQuadrupla (CALLOP, opnd1, opnd2, result);
+				$$.opnd = result;
 			}
 			;
 
