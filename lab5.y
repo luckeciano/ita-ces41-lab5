@@ -247,7 +247,7 @@ struct infovariavel {
 	char carac;
 	simbolo simb;
 	int tipoexpr;
-	int nsubscr;
+	int nsubscr, nargs;
 	infolistexpr infolexpr;
 	infoexpressao infoexpr;
 	infovariavel infovar;
@@ -257,8 +257,8 @@ struct infovariavel {
 
 %type	    <infovar>	        Variable Header FuncHeader  ProcHeader
 %type 	  <infoexpr> 	    Expression  AuxExpr1  AuxExpr2 CompStat StatList Statement ReturnStat
-                            AuxExpr3   AuxExpr4   Term   Factor 
-                            
+                            AuxExpr3   AuxExpr4   Term   Factor WriteElem
+%type 		<nargs> 	ReadList WriteList                            
 %type     <nsubscr>   SubscrList
 %type 		<infolexpr>	ExprList Arguments
 %type  		<simb>  		FuncCall
@@ -596,7 +596,11 @@ ForStat 	: 	FOR OPPAR {printf("for ( ");}
 					;
 
 ReadStat 	:	READ OPPAR {printf("read (");} 
-						ReadList CLPAR SCOLON
+						ReadList {
+							opnd1.tipo = INTOPND;
+							opnd1.atr.valint = $4;
+							GeraQuadrupla (OPREAD, opnd1, opndidle, opndidle);
+						} CLPAR SCOLON
 						{printf(");\n");}
 					;
 
@@ -605,28 +609,47 @@ ReadList 	: 	Variable  {
 		                $1.simb->inic = VERDADE;
 		                $1.simb->ref = VERDADE;
 		              }
+		              $$ = 1;
+					  GeraQuadrupla (PARAM, $1.opnd, opndidle, opndidle);
 		          } 
-					|   ReadList  COMMA  {printf (", ");}  
-						  Variable {
-                if ($4.simb != NULL) {
-                  $4.simb->inic = VERDADE;
-                  $4.simb->ref = VERDADE;
-                }
-              }
+				|   ReadList  COMMA  {printf (", ");}  
+					Variable {
+			            if ($4.simb != NULL) {
+			              $4.simb->inic = VERDADE;
+			              $4.simb->ref = VERDADE;
+			            }
+			            $$ = $1 + 1;
+						GeraQuadrupla (PARAM, $4.opnd, opndidle, opndidle);
+		          }
 					;
 
 WriteStat 	: 	WRITE OPPAR {printf("write (");} 
-								WriteList 
-								CLPAR SCOLON {printf(");\n");}
-						;
+						WriteList  {
+							opnd1.tipo = INTOPND;
+							opnd1.atr.valint = $4;
+							GeraQuadrupla (OPWRITE, opnd1, opndidle, opndidle);
+						}
+						CLPAR SCOLON {printf(");\n");}
+				;
 
-WriteList 	: 	WriteElem
-						| 	WriteList COMMA {printf(", ");} WriteElem
-						;
+WriteList 	: 	WriteElem {
+					$$ = 1;
+					GeraQuadrupla (PARAM, $1.opnd, opndidle, opndidle);
+				}
 
-WriteElem 	: 	STRING {printf("%s",$1);}
-						| 	Expression 
-						;	
+				| 	WriteList COMMA {printf(", ");} WriteElem {
+					$$ = $1 + 1;
+					GeraQuadrupla (PARAM, $4.opnd, opndidle, opndidle);
+				}
+				;
+
+WriteElem 	: 	STRING {printf("%s",$1);
+					$$.opnd.tipo = CADOPND;
+					$$.opnd.atr.valcad = malloc (strlen($1) + 1);
+					strcpy ($$.opnd.atr.valcad, $1);
+				}
+				| 	Expression 
+				;	
 
 CallStat 		: 	CALL ID OPPAR CLPAR SCOLON 
 							{printf ("call %s ();\n",$2);
