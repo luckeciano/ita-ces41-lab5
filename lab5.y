@@ -562,11 +562,14 @@ WhileStat 	: 	WHILE OPPAR {printf("while ( "); $<quad>$ = GeraQuadrupla (NOP, op
 								}
 						;
 
-RepeatStat 	: 	REPEAT {printf("repeat ");}
+RepeatStat 	: 	REPEAT {printf("repeat "); $<quad>$ = GeraQuadrupla (NOP, opndidle, opndidle, opndidle)}
 							Statement WHILE OPPAR {printf(" while ( ");}
 							Expression CLPAR SCOLON {printf(" );\n");} {
 								if ($7.tipo != LOGICO)
-                	Incompatibilidade ("Expressao nao logica/relacional dentro de repeat");
+                					Incompatibilidade ("Expressao nao logica/relacional dentro de repeat");
+            					opndaux.tipo = ROTOPND;
+                    			opndaux.atr.rotulo = $<quad>2;
+                    			GeraQuadrupla (JTOP, $7.opnd, opndidle, opndaux);
 							}
 						;
 
@@ -576,23 +579,44 @@ ForStat 	: 	FOR OPPAR {printf("for ( ");}
 								Incompatibilidade ("Variavel de inicializacao deve ser escalar do tipo inteiro ou caractere");
 							}
 						}
-						Expression SCOLON {printf("; ");}
 						Expression SCOLON {printf("; ");
+							$<quad>$ = GeraQuadrupla (NOP, opndidle, opndidle, opndidle);
+						}
+						Expression {
+							opndaux.tipo = ROTOPND;
+							$<quad>$ = GeraQuadrupla (JFOP, $6.opnd, opndidle, opndaux);
+						}
+						SCOLON {printf("; ");
+							$<quad>$ = GeraQuadrupla (NOP, opndidle, opndidle, opndidle);
 							if ($10.tipo != LOGICO) {
 								Incompatibilidade ("A segunda expressao de um comando for deve ser do tipo logico");
 							}
 						}
 						Variable ASSIGN { printf(" = ");
-							if ($4.simb != $13.simb) {
+							if ($4.simb != $14.simb) {
 								Incompatibilidade ("A variavel de atualizacao do comando for deve ser a mesma daquela de sua inicializacao");
 							}
 						}
-						Expression CLPAR {printf(" )\n");
-							if (($7.tipo != INTEIRO && $7.tipo != CARACTERE) || ($16.tipo != INTEIRO && $16.tipo != CARACTERE)) {
+						Expression CLPAR 
+						{ $<quad>$ = quadcorrente; }
+						{ $<quad>$ = GeraQuadrupla (NOP, opndidle, opndidle, opndidle); }
+						{	printf(" )\n");
+							if (($7.tipo != INTEIRO && $7.tipo != CARACTERE) || ($17.tipo != INTEIRO && $17.tipo != CARACTERE)) {
 								Incompatibilidade ("A primeira e terceira expressao de um comando for deve ser do tipo inteiro ou caractere");
 							}
 						}
-						{tab++;} Statement {tab--;}
+						{tab++;} Statement {tab--;
+							quadaux = quadcorrente;
+							opndaux.tipo = ROTOPND; opndaux.atr.rotulo = $<quad>9;
+							quadaux2 = GeraQuadrupla (JUMPOP, opndidle, opndidle, opndaux);
+							$<quad>11->result.atr.rotulo = GeraQuadrupla(NOP, opndidle, opndidle, opndidle);
+
+							//---Correção ordem das quádruplas
+							$<quad>11->prox = $<quad>20;
+							quadaux->prox = $<quad>13;
+							$<quad>19->prox = quadaux2;
+							RenumQuadruplas($<quad>11,quadcorrente);
+						}
 					;
 
 ReadStat 	:	READ OPPAR {printf("read (");} 
