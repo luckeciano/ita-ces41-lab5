@@ -65,6 +65,8 @@
 #define		PARAM			21
 #define		OPREAD		    22
 #define		OPWRITE		    23
+#define		OPRETURN		24
+#define 	OPCALL			25
 
 /* Definicao de constantes para os tipos de operandos de quadruplas */
 
@@ -77,6 +79,7 @@
 #define		CADOPND		    6
 #define		ROTOPND		    7
 #define		MODOPND		    8
+#define		FUNCOPND		9
 
 /*   Definicao de outras constantes   */
 
@@ -97,16 +100,16 @@ char *nometipvar[5] = {"NAOVAR",
 
 /* Strings para operadores de quadruplas */
 
-char *nomeoperquad[24] = {"",
+char *nomeoperquad[26] = {"",
 	"OR", "AND", "LT", "LE", "GT", "GE", "EQ", "NE", "MAIS",
 	"MENOS", "MULT", "DIV", "RESTO", "MENUN", "NOT", "ATRIB",
-	"OPENMOD", "NOP", "JUMP", "JF", "PARAM", "READ", "WRITE"
+	"OPENMOD", "NOP", "JUMP", "JF", "PARAM", "READ", "WRITE", "RETURN", "CALL"
 };
 
 /*	Strings para tipos de operandos de quadruplas */
 
-char *nometipoopndquad[9] = {"IDLE",
-	"VAR", "INT", "REAL", "CARAC", "LOGIC", "CADEIA", "ROTULO", "MODULO"
+char *nometipoopndquad[10] = {"IDLE",
+	"VAR", "INT", "REAL", "CARAC", "LOGIC", "CADEIA", "ROTULO", "MODULO", "FUNCTION"
 };
 
 /*    Declaracoes para a tabela de simbolos     */
@@ -187,6 +190,7 @@ typedef celmodhead *modhead;
 union atribopnd {
 	simbolo simb; int valint; float valfloat;
 	char valchar; char vallogic; char *valcad;
+	listsimb func;
 	quadrupla rotulo; modhead modulo;
 };
 
@@ -207,7 +211,7 @@ struct celmodhead {
 
 /* Variaveis globais para o codigo intermediario */
 
-quadrupla quadcorrente, quadaux;
+quadrupla quadcorrente, quadaux, quadaux2;
 modhead codintermed, modcorrente;
 int oper, numquadcorrente;
 operando opnd1, opnd2, result, opndaux;
@@ -478,8 +482,8 @@ CompStat    :	OPBRACE {
 						}
 						StatList 
 						CLBRACE {
-							if (quadcorrente->oper != RETURNOP)
-	    						GeraQuadrupla (RETURNOP, opndidle, opndidle, opndidle);
+							if (quadcorrente->oper != OPRETURN)
+	    						GeraQuadrupla (OPRETURN, opndidle, opndidle, opndidle);
 							tab--;
 							tab--; 
 							tabular ();
@@ -562,14 +566,14 @@ WhileStat 	: 	WHILE OPPAR {printf("while ( "); $<quad>$ = GeraQuadrupla (NOP, op
 								}
 						;
 
-RepeatStat 	: 	REPEAT {printf("repeat "); $<quad>$ = GeraQuadrupla (NOP, opndidle, opndidle, opndidle)}
+RepeatStat 	: 	REPEAT {printf("repeat "); $<quad>$ = GeraQuadrupla (NOP, opndidle, opndidle, opndidle);}
 							Statement WHILE OPPAR {printf(" while ( ");}
 							Expression CLPAR SCOLON {printf(" );\n");} {
 								if ($7.tipo != LOGICO)
                 					Incompatibilidade ("Expressao nao logica/relacional dentro de repeat");
             					opndaux.tipo = ROTOPND;
                     			opndaux.atr.rotulo = $<quad>2;
-                    			GeraQuadrupla (JTOP, $7.opnd, opndidle, opndaux);
+                    			GeraQuadrupla (OPJF, $7.opnd, opndidle, opndaux);
 							}
 						;
 
@@ -584,7 +588,7 @@ ForStat 	: 	FOR OPPAR {printf("for ( ");}
 						}
 						Expression {
 							opndaux.tipo = ROTOPND;
-							$<quad>$ = GeraQuadrupla (JFOP, $6.opnd, opndidle, opndaux);
+							$<quad>$ = GeraQuadrupla (OPJF, $10.opnd, opndidle, opndaux);
 						}
 						SCOLON {printf("; ");
 							$<quad>$ = GeraQuadrupla (NOP, opndidle, opndidle, opndidle);
@@ -608,7 +612,7 @@ ForStat 	: 	FOR OPPAR {printf("for ( ");}
 						{tab++;} Statement {tab--;
 							quadaux = quadcorrente;
 							opndaux.tipo = ROTOPND; opndaux.atr.rotulo = $<quad>9;
-							quadaux2 = GeraQuadrupla (JUMPOP, opndidle, opndidle, opndaux);
+							quadaux2 = GeraQuadrupla (OPJUMP, opndidle, opndidle, opndaux);
 							$<quad>11->result.atr.rotulo = GeraQuadrupla(NOP, opndidle, opndidle, opndidle);
 
 							//---Correção ordem das quádruplas
@@ -696,12 +700,12 @@ CallStat 		: 	CALL ID OPPAR CLPAR SCOLON
 						;
 
 ReturnStat 	: 	RETURN SCOLON {printf ("return ;\n");
-								$$.tipo = NAOVAR
-								GeraQuadrupla (RETURNOP, opndidle, opndidle, opndidle);
+								$$.tipo = NAOVAR;
+								GeraQuadrupla (OPRETURN, opndidle, opndidle, opndidle);
 						}
 						| 	RETURN {printf ("return ");} Expression SCOLON {printf (";\n");
 								$$.tipo = $3.tipo;
-								GeraQuadrupla (RETURNOP, $2.opnd, opndidle, opndidle);
+								GeraQuadrupla (OPRETURN, $3.opnd, opndidle, opndidle);
 						}
 						;
 
@@ -948,12 +952,12 @@ FuncCall 	: 	ID {printf ("%s",$1);}  OPPAR {printf ("(");
 						ChecArgumentos  ($5.listtipo, $$.simb->listparam); 
 					}
 				}
-				opnd1.tipo = FUNCOPND;  opnd1.atr.func = $$.simb->fhead;
-				opnd2.tipo = INTOPND; opnd2.atr.valint = $4.nargs;
+				opnd1.tipo = FUNCOPND;  opnd1.atr.func = $$.simb->listfunc;
+				opnd2.tipo = INTOPND; opnd2.atr.valint = $5.nargs;
 				if ($$.simb->tvar == NAOVAR) result = opndidle;
 				else { result.tipo = VAROPND;
 					result.atr.simb = NovaTemp ($$.simb->tvar); } 	
-				GeraQuadrupla (CALLOP, opnd1, opnd2, result);
+				GeraQuadrupla (OPCALL, opnd1, opnd2, result);
 				$$.opnd = result;
 			}
 			;
