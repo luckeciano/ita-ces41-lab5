@@ -730,7 +730,7 @@ CallStat 		: 	CALL ID OPPAR CLPAR SCOLON
 									TipoInadequado ($2);
 								$<simb>$ = simb;	
 							}
-							Arguments CLPAR SCOLON
+							ExprList CLPAR SCOLON
 							{printf (");\n");}
 						;
 
