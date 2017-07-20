@@ -40,7 +40,7 @@ write		{return WRITE;}
 
 {id}		{strcpy (yylval.string, yytext); 	return ID;}
 {intct}		{yylval.valint = atoi(yytext); 		return INTCT;}
-{ctcarac}	{yylval.carac = tratachar (yytext); return CHARCT;}
+{charct}	{yylval.carac = tratachar (yytext); return CHARCT;}
 {string}	{strcpy (yylval.string, yytext); 	return STRING;}
 {floatct}	{yylval.valfloat = atof(yytext); 	return FLOATCT;}
 

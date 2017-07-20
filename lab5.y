@@ -666,7 +666,6 @@ ReadList 	: 	Variable  {
 		              $4.simb->inic = $4.simb->ref = VERDADE;
 		            }
 					if ($4.simb->array == VERDADE) {
-						Incompatibilidade ("Aqui!");
 						opndaux.tipo = INTOPND;
 						opndaux.atr.valint = $1;
 						GeraQuadrupla (OPREAD, opndaux, opndidle, opndidle);

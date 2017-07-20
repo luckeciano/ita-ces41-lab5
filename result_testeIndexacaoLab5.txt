@@ -1,0 +1,92 @@
+program teste ;
+var
+  int i , j , k , A [ 10 ] [ 10 ] ;
+
+{
+  i = 7 ;
+  j = 5 ;
+  k = A [ i - 3 ] [ j + 2 ] + 5 ;
+  A [ 10 - i ] [ 9 - j ] = i + j  * k ;
+  read (i , j , A [ 2 ] [ 3 ] , k );
+  read (A [ 1 ] [ 2 ] );
+}
+
+
+
+   TABELA  DE  SIMBOLOS:
+
+Classe 4:
+  (##1, IDVAR, INTEIRO, 1, 1)
+Classe 5:
+  (##2, IDVAR, INTEIRO, 1, 1)
+  (global##, IDGLOB)
+Classe 6:
+  (##10, IDVAR, INTEIRO, 1, 1)
+  (##3, IDVAR, INTEIRO, 1, 1)
+Classe 7:
+  (##11, IDVAR, INTEIRO, 1, 1)
+  (##4, IDVAR, INTEIRO, 1, 1)
+Classe 8:
+  (##12, IDVAR, INTEIRO, 1, 1)
+  (##5, IDVAR, INTEIRO, 1, 1)
+Classe 9:
+  (##13, IDVAR, INTEIRO, 1, 1)
+  (##6, IDVAR, INTEIRO, 1, 1)
+Classe 10:
+  (##14, IDVAR, INTEIRO, 1, 1)
+  (##7, IDVAR, INTEIRO, 1, 1)
+Classe 11:
+  (##8, IDVAR, INTEIRO, 1, 1)
+Classe 12:
+  (##9, IDVAR, INTEIRO, 1, 1)
+Classe 13:
+  (i, IDVAR, INTEIRO, 1, 1)
+Classe 14:
+  (j, IDVAR, INTEIRO, 1, 1)
+Classe 15:
+  (k, IDVAR, INTEIRO, 1, 1)
+Classe 19:
+  (A, IDVAR, INTEIRO, 1, 1, EH ARRAY
+        ndims = 2, dimensoes:  10  10)
+
+
+Quadruplas do modulo global##:
+
+           1) OPENMOD, (MODULO, global##), (IDLE), (IDLE)
+           2) ATRIB, (INT, 7), (IDLE), (VAR, i)
+           3) ATRIB, (INT, 5), (IDLE), (VAR, j)
+           4) MENOS, (VAR, i), (INT, 3), (VAR, ##1)
+           5) IND, (VAR, ##1), (IDLE), (IDLE)
+           6) MAIS, (VAR, j), (INT, 2), (VAR, ##2)
+           7) IND, (VAR, ##2), (IDLE), (IDLE)
+           8) INDEX, (VAR, A), (INT, 2), (VAR, ##3)
+           9) CONTAPONT, (VAR, ##3), (IDLE), (VAR, ##4)
+          10) MAIS, (VAR, ##4), (INT, 5), (VAR, ##5)
+          11) ATRIB, (VAR, ##5), (IDLE), (VAR, k)
+          12) MENOS, (INT, 10), (VAR, i), (VAR, ##6)
+          13) IND, (VAR, ##6), (IDLE), (IDLE)
+          14) MENOS, (INT, 9), (VAR, j), (VAR, ##7)
+          15) IND, (VAR, ##7), (IDLE), (IDLE)
+          16) INDEX, (VAR, A), (INT, 2), (VAR, ##8)
+          17) MULT, (VAR, j), (VAR, k), (VAR, ##9)
+          18) MAIS, (VAR, i), (VAR, ##9), (VAR, ##10)
+          19) ATRIBPONT, (VAR, ##10), (IDLE), (VAR, ##8)
+          20) PARAM, (VAR, i), (IDLE), (IDLE)
+          21) PARAM, (VAR, j), (IDLE), (IDLE)
+          22) IND, (INT, 2), (IDLE), (IDLE)
+          23) IND, (INT, 3), (IDLE), (IDLE)
+          24) INDEX, (VAR, A), (INT, 2), (VAR, ##11)
+          25) READ, (INT, 2), (IDLE), (IDLE)
+          26) PARAM, (VAR, ##12), (IDLE), (IDLE)
+          27) READ, (INT, 1), (IDLE), (IDLE)
+          28) ATRIBPONT, (VAR, ##12), (IDLE), (VAR, ##11)
+          29) PARAM, (VAR, k), (IDLE), (IDLE)
+          30) READ, (INT, 1), (IDLE), (IDLE)
+          31) IND, (INT, 1), (IDLE), (IDLE)
+          32) IND, (INT, 2), (IDLE), (IDLE)
+          33) INDEX, (VAR, A), (INT, 2), (VAR, ##13)
+          34) PARAM, (VAR, ##14), (IDLE), (IDLE)
+          35) READ, (INT, 1), (IDLE), (IDLE)
+          36) ATRIBPONT, (VAR, ##14), (IDLE), (VAR, ##13)
+          37) READ, (INT, 0), (IDLE), (IDLE)
+          38) RETURN, (IDLE), (IDLE), (IDLE)
